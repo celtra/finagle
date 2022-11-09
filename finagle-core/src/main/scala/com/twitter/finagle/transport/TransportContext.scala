@@ -26,6 +26,37 @@ abstract class TransportContext {
    * @note If SSL/TLS is not being used a `NullSslSessionInfo` will be returned instead.
    */
   def sslSessionInfo: SslSessionInfo
+
+  /**
+   * Initial, typically client, source address of this transport.
+   *
+   * Typically HTTP server is place behind load balancer and initial transport protocol
+   * information is therefore lost.
+   *
+   * @note Property is fulfilled only if HAProxyProtocol message is received through channel.
+   */
+  def clientSourceAddress: Option[String] = None
+
+  /**
+   * Initial, typically client, source port of this transport.
+   *
+   * @note For more information check [[clientSourceAddress]]
+   */
+  def clientSourcePort: Option[Int] = None
+
+  /**
+   * Initial, typically client, destination address of this transport.
+   *
+   * @note For more information check [[clientSourceAddress]]
+   */
+  def clientDestinationAddress: Option[String] = None
+
+  /**
+   * Initial, typically client, destination port of this transport.
+   *
+   * @note For more information check [[clientSourceAddress]]
+   */
+  def clientDestinationPort: Option[Int] = None
 }
 
 private[finagle] class SimpleTransportContext(
