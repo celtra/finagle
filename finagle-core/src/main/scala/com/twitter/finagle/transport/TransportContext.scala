@@ -2,7 +2,7 @@ package com.twitter.finagle.transport
 
 import com.twitter.finagle.ssl.session.{NullSslSessionInfo, SslSessionInfo}
 import com.twitter.util.Updatable
-import java.net.SocketAddress
+import java.net.{InetAddress, SocketAddress}
 
 /**
  * Exposes a way to control the transport, and read off properties from the
@@ -35,26 +35,26 @@ abstract class TransportContext {
    *
    * @note Property is fulfilled only if HAProxyProtocol message is received through channel.
    */
-  def clientSourceAddress: Option[String] = None
+  def clientSourceAddress: Option[InetAddress] = None
 
   /**
    * Initial, typically client, source port of this transport.
    *
-   * @note For more information check [[clientSourceAddress]]
+   * @see For more information check [[clientSourceAddress]]
    */
   def clientSourcePort: Option[Int] = None
 
   /**
    * Initial, typically client, destination address of this transport.
    *
-   * @note For more information check [[clientSourceAddress]]
+   * @see For more information check [[clientSourceAddress]]
    */
-  def clientDestinationAddress: Option[String] = None
+  def clientDestinationAddress: Option[InetAddress] = None
 
   /**
    * Initial, typically client, destination port of this transport.
    *
-   * @note For more information check [[clientSourceAddress]]
+   * @see For more information check [[clientSourceAddress]]
    */
   def clientDestinationPort: Option[Int] = None
 }

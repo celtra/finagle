@@ -198,6 +198,12 @@ private[finagle] class Netty4ServerStreamTransport(rawTransport: Transport[Any, 
   def read(): Future[Multi[Request]] = {
     transport.read().flatMap {
       case req: FullHttpRequest =>
+        println("----------------------- FULL HTTP REQUEST -------------------------", req)
+
+        println("----------------------- SOURCE ADDRESS -------------------------", transport.context.clientSourceAddress)
+
+        println("----------------------- DESTINATION PORT -------------------------", transport.context.clientDestinationPort)
+
         val finagleReq = Bijections.netty.fullRequestToFinagle(
           req,
           // We have to match/cast as remoteAddress is stored as SocketAddress but Request's
@@ -206,7 +212,9 @@ private[finagle] class Netty4ServerStreamTransport(rawTransport: Transport[Any, 
           transport.context.remoteAddress match {
             case ia: InetSocketAddress => ia
             case _ => new InetSocketAddress(0)
-          }
+          },
+          transport.context.clientSourceAddress,
+          transport.context.clientDestinationPort
         )
         Future.value(Multi(finagleReq, Future.Done))
 

@@ -1,12 +1,17 @@
 package com.twitter.finagle.netty4.transport
 
-import com.twitter.finagle.netty4.haproxy.HAProxyProtocolHandler.{DestinationAddressAttribute, DestinationPortAttribute, SourceAddressAttribute, SourcePortAttribute}
+import com.twitter.finagle.netty4.haproxy.HAProxyProtocolHandler.{
+  DestinationAddressAttribute,
+  DestinationPortAttribute,
+  SourceAddressAttribute,
+  SourcePortAttribute
+}
 import com.twitter.finagle.ssl.session.{NullSslSessionInfo, SslSessionInfo, UsingSslSessionInfo}
 import com.twitter.finagle.transport.TransportContext
 import io.netty.channel.Channel
 import io.netty.handler.ssl.SslHandler
 
-import java.net.SocketAddress
+import java.net.{InetAddress, SocketAddress}
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
@@ -20,11 +25,11 @@ private[finagle] final class ChannelTransportContext(val ch: Channel) extends Tr
 
   def remoteAddress: SocketAddress = ch.remoteAddress
 
-  override def clientSourceAddress: Option[String] = Option(ch.attr(SourceAddressAttribute).get())
+  override def clientSourceAddress: Option[InetAddress] = Option(ch.attr(SourceAddressAttribute).get())
 
   override def clientSourcePort: Option[Int] = Option(ch.attr(SourcePortAttribute).get())
 
-  override def clientDestinationAddress: Option[String] = Option(ch.attr(DestinationAddressAttribute).get())
+  override def clientDestinationAddress: Option[InetAddress] = Option(ch.attr(DestinationAddressAttribute).get())
 
   override def clientDestinationPort: Option[Int] = Option(ch.attr(DestinationPortAttribute).get())
 

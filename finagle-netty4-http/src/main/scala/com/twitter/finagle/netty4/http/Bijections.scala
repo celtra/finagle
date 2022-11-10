@@ -14,7 +14,7 @@ import com.twitter.finagle.http.{
 import com.twitter.finagle.netty4.ByteBufConversion
 import com.twitter.io.Reader
 import io.netty.handler.codec.{http => NettyHttp}
-import java.net.InetSocketAddress
+import java.net.{InetAddress, InetSocketAddress}
 
 object revalidateInboundHeaders
     extends GlobalFlag[Boolean](
@@ -59,7 +59,9 @@ private[finagle] object Bijections {
 
     def fullRequestToFinagle(
       in: NettyHttp.FullHttpRequest,
-      remoteAddr: InetSocketAddress
+      remoteAddr: InetSocketAddress,
+      clientSourceAddr: Option[InetAddress] = None,
+      clientDestinationPort: Option[Int] = None
     ): Request = {
       val payload = ByteBufConversion.byteBufAsBuf(in.content)
 
@@ -71,7 +73,7 @@ private[finagle] object Bijections {
         if (in.trailingHeaders.isEmpty) HeaderMap.Empty
         else headersToFinagle(in.trailingHeaders)
 
-      val out = new Request.Inbound(reader, remoteAddr, trailers)
+      val out = new Request.Inbound(reader, remoteAddr, trailers, clientSourceAddr, clientDestinationPort)
 
       out.setChunked(false)
       out.content = payload

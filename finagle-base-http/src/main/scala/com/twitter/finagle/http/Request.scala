@@ -216,6 +216,28 @@ abstract class Request private extends Message {
   def remotePort: Int =
     remoteSocketAddress.getPort
 
+  /**
+   * The client source address of the request.
+   *
+   * Typically HTTP server is place behind load balancer and therefore
+   * [[remoteAddress]] is pointing to it. In such cases client source address
+   * is lost.
+   *
+   * @note Value will be fulfilled only if:
+   *       HA proxy protocol is enabled on HTTP server
+   *       HTTP protocol of request is 1.1
+   *       HTTP streaming is not used or disabled
+   *       Load balancer pre-append request with proxy protocol message v1|v2
+   */
+  def clientSourceAddress: Option[InetAddress]
+
+  /**
+   * The client destination port of the request.
+   *
+   * @see [[clientSourceAddress]] for additional information.
+   */
+  def clientDestinationPort: Option[Int]
+
   // The get*Param methods below are for Java compatibility.  Note Scala default
   // arguments aren't compatible with Java, so we need two versions of each.
 
@@ -468,6 +490,8 @@ object Request {
 
     def ctx: Schema.Record = request.ctx
     def remoteSocketAddress: InetSocketAddress = request.remoteSocketAddress
+    def clientSourceAddress: Option[InetAddress] = None
+    def clientDestinationPort: Option[Int] = None
     def chunkReader: Reader[Chunk] = request.chunkReader
     def chunkWriter: Writer[Chunk] = request.chunkWriter
     override lazy val cookies: CookieMap = request.cookies
@@ -495,8 +519,10 @@ object Request {
   private[finagle] final class Inbound(
     val chunkReader: Reader[Chunk],
     val remoteSocketAddress: InetSocketAddress,
-    val trailers: HeaderMap)
-      extends Request {
+    val trailers: HeaderMap,
+    val clientSourceAddress: Option[InetAddress] = None,
+    val clientDestinationPort: Option[Int] = None
+  ) extends Request {
 
     def chunkWriter: Writer[Chunk] = FailingWriter
 
@@ -528,11 +554,11 @@ object Request {
   /**
    * An outbound request (a request sent by a client).
    */
-  private[finagle] final class Impl(
+  private[finagle] final class Impl (
     val chunkReader: Reader[Chunk],
     val chunkWriter: Writer[Chunk],
-    val remoteSocketAddress: InetSocketAddress)
-      extends Request {
+    val remoteSocketAddress: InetSocketAddress,
+  ) extends Request {
 
     def this(chunkReader: Reader[Chunk], remoteSocketAddress: InetSocketAddress) =
       this(chunkReader, FailingWriter, remoteSocketAddress)
@@ -556,11 +582,15 @@ object Request {
     def method: Method = _method
     def method_=(method: Method): Unit = {
       _method = method
+
     }
 
     def uri: String = _uri
     def uri_=(uri: String): Unit = {
       _uri = uri
     }
+
+    def clientSourceAddress: Option[InetAddress] = None
+    def clientDestinationPort: Option[Int] = None
   }
 }
