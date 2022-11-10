@@ -1,6 +1,5 @@
 package com.twitter.finagle.netty4.haproxy
 
-import com.twitter.util.Try
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandlerAdapter}
 import io.netty.handler.codec.haproxy.HAProxyMessage
@@ -23,13 +22,12 @@ private[finagle] class HAProxyProtocolHandler extends ChannelInboundHandlerAdapt
   override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = {
     msg match {
       case m: HAProxyMessage =>
-        val sourceAddr = Try(InetAddress.getByName(m.sourceAddress())).getOrElse(null)
-        val destinationAddr = Try(InetAddress.getByName(m.destinationAddress())).getOrElse(null)
-
-        ctx.channel().attr(SourceAddressAttribute).set(sourceAddr)
-        ctx.channel().attr(SourcePortAttribute).set(m.sourcePort())
-        ctx.channel().attr(DestinationAddressAttribute).set(destinationAddr)
-        ctx.channel().attr(DestinationPortAttribute).set(m.destinationPort())
+        if (Option(m.sourceAddress()).isDefined && Option(m.destinationAddress()).isDefined) {
+          ctx.channel().attr(SourceAddressAttribute).set(InetAddress.getByName(m.sourceAddress()))
+          ctx.channel().attr(SourcePortAttribute).set(m.sourcePort())
+          ctx.channel().attr(DestinationAddressAttribute).set(InetAddress.getByName(m.destinationAddress()))
+          ctx.channel().attr(DestinationPortAttribute).set(m.destinationPort())
+        }
 
         // Remove ourselves from the channel now, as no more work to do.
         ctx.pipeline().remove(this)
