@@ -77,4 +77,8 @@ private[finagle] class UpdatableContext(first: TransportContext)
   def localAddress: SocketAddress = underlying.localAddress
   def remoteAddress: SocketAddress = underlying.remoteAddress
   def sslSessionInfo: SslSessionInfo = underlying.sslSessionInfo
+  override def clientSourceAddress: Option[InetAddress] = underlying.clientSourceAddress
+  override def clientSourcePort: Option[Int] = underlying.clientSourcePort
+  override def clientDestinationAddress: Option[InetAddress] = underlying.clientDestinationAddress
+  override def clientDestinationPort: Option[Int] = underlying.clientDestinationPort
 }

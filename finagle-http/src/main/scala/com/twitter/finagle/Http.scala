@@ -498,6 +498,31 @@ object Http extends Client[Request, Response] with HttpRichClient with Server[Re
       configured(http.param.Streaming(fixedLengthStreamedAfter))
 
     /**
+     * Enable/disable HA proxy protocol v1|v2
+     *
+     * Typically HTTP server is place behind load balancer and therefore
+     * remote address of the request is pointing to it. In such cases original
+     * client source address and destination port of the request is lost.
+     *
+     * Enable HA proxy protocol only if load balancer supports and pre-append requests
+     * with proxy protocol message v1|v2
+     *
+     * @note Handling HA proxy protocol is currently NOT supported for:
+     *       - HTTP protocol version 2
+     *       - HTTP1.1 streaming
+     *
+     * @note Enabling HA Proxy protocol will disable HTTP2 and disable streaming for HTTP1.1
+     *
+     * @see [[https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt]]
+     */
+    def withHAProxyProtocol(enabled: Boolean): Server = {
+      this
+        .withNoHttp2
+        .withStreaming(false)
+        .configured(http.param.HAProxyProtocol(enabled))
+    }
+
+    /**
      * Enables decompression of http content bodies.
      */
     def withDecompression(enabled: Boolean): Server =

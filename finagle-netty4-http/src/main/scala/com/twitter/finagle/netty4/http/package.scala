@@ -152,7 +152,11 @@ package object http {
     val badRequestHandler = new BadRequestHandler(stats)
 
     { pipeline: ChannelPipeline =>
-      pipeline.addFirst(HAProxyProtocolDetector.HandlerName, new HAProxyProtocolDetector())
+      params[HAProxyProtocol] match {
+        case HAProxyProtocol.Enabled =>
+          pipeline.addFirst(HAProxyProtocolDetector.HandlerName, new HAProxyProtocolDetector())
+        case _ =>
+      }
 
       compressionLevel match {
         case lvl if lvl > 0 =>

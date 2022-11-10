@@ -222,12 +222,10 @@ abstract class Request private extends Message {
    * Typically HTTP server is place behind load balancer and therefore
    * [[remoteAddress]] is pointing to it. In such cases client source address
    * is lost.
-   *
+
    * @note Value will be fulfilled only if:
-   *       HA proxy protocol is enabled on HTTP server
-   *       HTTP protocol of request is 1.1
-   *       HTTP streaming is not used or disabled
-   *       Load balancer pre-append request with proxy protocol message v1|v2
+   *       - HA proxy protocol is enabled on finagle HTTP server
+   *       - Load balancer pre-append request with proxy protocol message v1|v2
    */
   def clientSourceAddress: Option[InetAddress]
 
@@ -557,7 +555,7 @@ object Request {
   private[finagle] final class Impl(
     val chunkReader: Reader[Chunk],
     val chunkWriter: Writer[Chunk],
-    val remoteSocketAddress: InetSocketAddress,
+    val remoteSocketAddress: InetSocketAddress
   ) extends Request {
 
     def this(chunkReader: Reader[Chunk], remoteSocketAddress: InetSocketAddress) =
