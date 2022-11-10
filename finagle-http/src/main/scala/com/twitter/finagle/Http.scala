@@ -516,10 +516,14 @@ object Http extends Client[Request, Response] with HttpRichClient with Server[Re
      * @see [[https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt]]
      */
     def withHAProxyProtocol(enabled: Boolean): Server = {
-      this
-        .withNoHttp2
-        .withStreaming(false)
-        .configured(http.param.HAProxyProtocol(enabled))
+      if (enabled) {
+        this
+          .withNoHttp2
+          .withStreaming(false)
+          .configured(http.param.HAProxyProtocol(enabled))
+      } else {
+        configured(http.param.HAProxyProtocol(enabled))
+      }
     }
 
     /**
