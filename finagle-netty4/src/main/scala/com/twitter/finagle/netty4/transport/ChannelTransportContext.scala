@@ -10,7 +10,6 @@ import com.twitter.finagle.ssl.session.{NullSslSessionInfo, SslSessionInfo, Usin
 import com.twitter.finagle.transport.TransportContext
 import io.netty.channel.Channel
 import io.netty.handler.ssl.SslHandler
-
 import java.net.{InetAddress, SocketAddress}
 import scala.annotation.tailrec
 import scala.util.control.NonFatal

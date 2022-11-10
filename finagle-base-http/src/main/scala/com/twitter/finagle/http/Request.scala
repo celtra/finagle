@@ -554,7 +554,7 @@ object Request {
   /**
    * An outbound request (a request sent by a client).
    */
-  private[finagle] final class Impl (
+  private[finagle] final class Impl(
     val chunkReader: Reader[Chunk],
     val chunkWriter: Writer[Chunk],
     val remoteSocketAddress: InetSocketAddress,
@@ -582,7 +582,6 @@ object Request {
     def method: Method = _method
     def method_=(method: Method): Unit = {
       _method = method
-
     }
 
     def uri: String = _uri

@@ -198,10 +198,9 @@ private[finagle] class Netty4ServerStreamTransport(rawTransport: Transport[Any, 
   def read(): Future[Multi[Request]] = {
     transport.read().flatMap {
       case req: FullHttpRequest =>
+        // TODO: REMOVE ME
         println("----------------------- FULL HTTP REQUEST -------------------------", req)
-
         println("----------------------- SOURCE ADDRESS -------------------------", transport.context.clientSourceAddress)
-
         println("----------------------- DESTINATION PORT -------------------------", transport.context.clientDestinationPort)
 
         val finagleReq = Bijections.netty.fullRequestToFinagle(

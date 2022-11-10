@@ -15,7 +15,6 @@ import com.twitter.finagle.server.Listener
 import com.twitter.finagle.transport.TransportContext
 import io.netty.channel._
 import io.netty.handler.codec.http._
-
 import java.net.SocketAddress
 
 /**

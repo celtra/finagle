@@ -23,8 +23,6 @@ private[finagle] class HAProxyProtocolHandler extends ChannelInboundHandlerAdapt
   override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = {
     msg match {
       case m: HAProxyMessage =>
-        println("------------------------ HA PROXY MESSAGE --------------------------------------", m)
-
         val sourceAddr = Try(InetAddress.getByName(m.sourceAddress())).getOrElse(null)
         val destinationAddr = Try(InetAddress.getByName(m.destinationAddress())).getOrElse(null)
 
