@@ -2,6 +2,7 @@ package com.twitter.finagle.netty4.haproxy
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.handler.codec.haproxy.HAProxyMessage
 import io.netty.util.CharsetUtil
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -28,7 +29,9 @@ class HAProxyProtocolHandlerTest extends AnyFunSuite {
 
     assert(channel.writeInbound(msg))
     assert(channel.inboundMessages().size() == 1)
+    assert(!channel.inboundMessages().peek().isInstanceOf[HAProxyMessage])
 
+    // Channel attributes should not be set
     Seq(
       HAProxyProtocolHandler.SourceAddressAttribute,
       HAProxyProtocolHandler.SourcePortAttribute,
