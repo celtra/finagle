@@ -2,12 +2,6 @@ package com.twitter.finagle.netty4.haproxy
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
-import io.netty.handler.codec.haproxy.{
-  HAProxyCommand,
-  HAProxyMessage,
-  HAProxyProtocolVersion,
-  HAProxyProxiedProtocol
-}
 import io.netty.util.CharsetUtil
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -43,22 +37,5 @@ class HAProxyProtocolHandlerTest extends AnyFunSuite {
     ).foreach { attr =>
       assert(channel.attr(attr).get() == null)
     }
-  }
-
-  private def defaultHAProxyMessage(
-    sourceAddr: String = "1.1.1.1",
-    destAddr: String = "2.2.2.2",
-    sourcePort: Int = 1024,
-    destPort: Int = 8080
-  ): HAProxyMessage = {
-    new HAProxyMessage(
-      HAProxyProtocolVersion.V1,
-      HAProxyCommand.PROXY,
-      HAProxyProxiedProtocol.TCP4,
-      sourceAddr,
-      destAddr,
-      sourcePort,
-      destPort
-    )
   }
 }
