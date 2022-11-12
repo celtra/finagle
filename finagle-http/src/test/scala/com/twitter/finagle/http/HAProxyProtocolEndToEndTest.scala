@@ -3,12 +3,25 @@ package com.twitter.finagle.http
 import com.twitter.finagle.{Http, ListeningServer, Service}
 import com.twitter.util.{Await, Future}
 import com.twitter.conversions.DurationOps._
+import io.netty.bootstrap.Bootstrap
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.buffer.Unpooled
+import io.netty.channel.{ChannelHandlerContext, ChannelOutboundHandlerAdapter}
+import io.netty.handler.codec.http.{DefaultFullHttpRequest, HttpMethod, HttpRequestEncoder, HttpVersion}
+import io.netty.handler.codec.haproxy.{
+  HAProxyCommand,
+  HAProxyMessage,
+  HAProxyMessageEncoder,
+  HAProxyProtocolVersion,
+  HAProxyProxiedProtocol
+}
 import org.scalatest.funspec.AnyFunSpec
 import java.net.InetSocketAddress
 
 class HAProxyProtocolEndToEndTest extends AnyFunSpec {
-  describe("with HA proxy disabled") {
-    it("does not contain client connection information") {
+  describe("When HA proxy disabled") {
+    it("request should not contain client connection information") {
       def validate: Request => Unit = req => {
         assert(req.clientSourceAddress.isEmpty)
         assert(req.clientDestinationPort.isEmpty)
@@ -22,8 +35,8 @@ class HAProxyProtocolEndToEndTest extends AnyFunSpec {
     }
   }
 
-  describe("with HA proxy enabled") {
-    it("does not contain client connection information if HA proxy message not passed") {
+  describe("When HA proxy enabled") {
+    it("request should not contain client connection information when HA proxy message not available") {
       def validate: Request => Unit = req => {
         assert(req.clientSourceAddress.isEmpty)
         assert(req.clientDestinationPort.isEmpty)
@@ -36,7 +49,7 @@ class HAProxyProtocolEndToEndTest extends AnyFunSpec {
       assert(response.status == Status.Ok)
     }
 
-    it("contains client connection information") {
+    it("request should contain client connection information when HA proxy message available") {
       val serverPort = 8080
 
       def validate: Request => Unit = req => {
@@ -46,8 +59,34 @@ class HAProxyProtocolEndToEndTest extends AnyFunSpec {
 
       val server = httpServer(true, serverService(validate), serverPort)
 
-      // TODO: CLIENT SEND HA PROXY MESSAGE
+      // Initialize client request containing HA proxy protocol message
+      val group = new NioEventLoopGroup()
+      val b = new Bootstrap()
+      b.group(group)
+        .channel(classOf[NioSocketChannel])
+        .handler(new ChannelOutboundHandlerAdapter {
+          override def handlerAdded(ctx: ChannelHandlerContext): Unit = {
+            ctx.pipeline
+              .addBefore(ctx.name(), null, HAProxyMessageEncoder.INSTANCE)
+              .addLast(new HttpRequestEncoder())
 
+            super.handlerAdded(ctx)
+          }
+        })
+      val ch = b.connect(server.boundAddress).sync().channel()
+
+      val message = new HAProxyMessage(
+        HAProxyProtocolVersion.V1, HAProxyCommand.PROXY, HAProxyProxiedProtocol.TCP4,
+        "127.0.0.0", "127.0.0.1", 1024, serverPort
+      )
+      val req = new DefaultFullHttpRequest(
+        HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/", Unpooled.EMPTY_BUFFER
+      )
+
+      ch.writeAndFlush(message).sync()
+      ch.writeAndFlush(req).sync()
+      ch.close.sync()
+      group.shutdownGracefully()
     }
   }
 
