@@ -7,16 +7,12 @@ import io.netty.bootstrap.Bootstrap
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.buffer.Unpooled
-import io.netty.channel.{ChannelHandlerContext, ChannelOutboundHandlerAdapter}
-import io.netty.handler.codec.http.{DefaultFullHttpRequest, HttpMethod, HttpRequestEncoder, HttpVersion}
-import io.netty.handler.codec.haproxy.{
-  HAProxyCommand,
-  HAProxyMessage,
-  HAProxyMessageEncoder,
-  HAProxyProtocolVersion,
-  HAProxyProxiedProtocol
-}
+import io.netty.channel.socket.SocketChannel
+import io.netty.channel.{ChannelHandlerContext, ChannelInitializer, ChannelOutboundHandlerAdapter, SimpleChannelInboundHandler}
+import io.netty.handler.codec.http.{DefaultFullHttpRequest, HttpClientCodec, HttpMethod, HttpObject, HttpRequestEncoder, HttpResponse, HttpResponseStatus, HttpVersion, LastHttpContent}
+import io.netty.handler.codec.haproxy.{HAProxyCommand, HAProxyMessage, HAProxyMessageEncoder, HAProxyProtocolVersion, HAProxyProxiedProtocol}
 import org.scalatest.funspec.AnyFunSpec
+
 import java.net.InetSocketAddress
 
 class HAProxyProtocolEndToEndTest extends AnyFunSpec {
@@ -64,15 +60,22 @@ class HAProxyProtocolEndToEndTest extends AnyFunSpec {
       val b = new Bootstrap()
       b.group(group)
         .channel(classOf[NioSocketChannel])
-        .handler(new ChannelOutboundHandlerAdapter {
-          override def handlerAdded(ctx: ChannelHandlerContext): Unit = {
-            ctx.pipeline
-              .addBefore(ctx.name(), null, HAProxyMessageEncoder.INSTANCE)
-              .addLast(new HttpRequestEncoder())
-
-            super.handlerAdded(ctx)
+        .handler(new ChannelInitializer[SocketChannel] {
+          override def initChannel(ch: SocketChannel): Unit = {
+            ch.pipeline
+              .addLast("haproxyEncoder", HAProxyMessageEncoder.INSTANCE)
+              .addLast("httpCodec", new HttpClientCodec())
+              .addLast("clientHandler", new SimpleChannelInboundHandler[HttpObject]() {
+                override def channelRead0(ctx: ChannelHandlerContext, msg: HttpObject): Unit = {
+                  msg match {
+                    case resp: HttpResponse => assert(resp.status() == HttpResponseStatus.OK)
+                    case _: LastHttpContent => ctx.close()
+                  }
+                }
+              })
           }
         })
+
       val ch = b.connect(server.boundAddress).sync().channel()
 
       val message = new HAProxyMessage(
@@ -85,7 +88,7 @@ class HAProxyProtocolEndToEndTest extends AnyFunSpec {
 
       ch.writeAndFlush(message).sync()
       ch.writeAndFlush(req).sync()
-      ch.close.sync()
+      ch.closeFuture().sync()
       group.shutdownGracefully()
     }
   }

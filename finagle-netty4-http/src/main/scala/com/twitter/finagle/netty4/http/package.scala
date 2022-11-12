@@ -160,7 +160,6 @@ package object http {
     val badRequestHandler = new BadRequestHandler(stats)
 
     { pipeline: ChannelPipeline =>
-
       compressionLevel match {
         case lvl if lvl > 0 =>
           pipeline.addLast("httpCompressor", new HttpContentCompressor(lvl))
