@@ -143,6 +143,14 @@ package object http {
           params = params
         )
 
+  private[finagle] def initHAProxyProtocol(params: Stack.Params): ChannelPipeline => Unit = pipeline => {
+    params[HAProxyProtocol] match {
+      case HAProxyProtocol.Enabled =>
+        pipeline.addFirst(HAProxyProtocolDetector.HandlerName, new HAProxyProtocolDetector())
+      case _ =>
+    }
+  }
+
   private[finagle] def initServer(params: Stack.Params): ChannelPipeline => Unit = {
     val autoContinue = params[AutomaticContinue].enabled
     val maxRequestSize = params[MaxRequestSize].size
@@ -152,11 +160,6 @@ package object http {
     val badRequestHandler = new BadRequestHandler(stats)
 
     { pipeline: ChannelPipeline =>
-      params[HAProxyProtocol] match {
-        case HAProxyProtocol.Enabled =>
-          pipeline.addFirst(HAProxyProtocolDetector.HandlerName, new HAProxyProtocolDetector())
-        case _ =>
-      }
 
       compressionLevel match {
         case lvl if lvl > 0 =>
@@ -215,6 +218,7 @@ package object http {
   private[finagle] val ServerPipelineInit: Stack.Params => ChannelPipeline => Unit = {
     params: Stack.Params => pipeline: ChannelPipeline =>
       {
+        initHAProxyProtocol(params)(pipeline)
         pipeline.addLast(HttpCodecName, newHttpServerCodec(params))
         initServer(params)(pipeline)
       }
