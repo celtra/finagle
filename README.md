@@ -102,3 +102,10 @@ cd <HOME>/runner/work/finagle/finagle
 ./sbt update
 ./sbt compile
 ```
+
+## Local run tests
+ 
+Run the following to run tests for the most relevant Finagle HTTP packages.
+```
+./sbt "finagle-base-http/test" "finagle-http/test" "finagle-http2/test" "finagle-netty4/test" "finagle-netty4-http/test" "finagle-core/test"
+```
