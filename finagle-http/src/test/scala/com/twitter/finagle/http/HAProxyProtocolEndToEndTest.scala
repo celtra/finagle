@@ -8,11 +8,25 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.buffer.Unpooled
 import io.netty.channel.socket.SocketChannel
-import io.netty.channel.{ChannelHandlerContext, ChannelInitializer, ChannelOutboundHandlerAdapter, SimpleChannelInboundHandler}
-import io.netty.handler.codec.http.{DefaultFullHttpRequest, HttpClientCodec, HttpMethod, HttpObject, HttpRequestEncoder, HttpResponse, HttpResponseStatus, HttpVersion, LastHttpContent}
-import io.netty.handler.codec.haproxy.{HAProxyCommand, HAProxyMessage, HAProxyMessageEncoder, HAProxyProtocolVersion, HAProxyProxiedProtocol}
+import io.netty.channel.{ChannelHandlerContext, ChannelInitializer, SimpleChannelInboundHandler}
+import io.netty.handler.codec.http.{
+  DefaultFullHttpRequest,
+  HttpClientCodec,
+  HttpMethod,
+  HttpObject,
+  HttpResponse,
+  HttpResponseStatus,
+  HttpVersion,
+  LastHttpContent
+}
+import io.netty.handler.codec.haproxy.{
+  HAProxyCommand,
+  HAProxyMessage,
+  HAProxyMessageEncoder,
+  HAProxyProtocolVersion,
+  HAProxyProxiedProtocol
+}
 import org.scalatest.funspec.AnyFunSpec
-
 import java.net.InetSocketAddress
 
 class HAProxyProtocolEndToEndTest extends AnyFunSpec {
@@ -76,14 +90,14 @@ class HAProxyProtocolEndToEndTest extends AnyFunSpec {
           }
         })
 
-      val ch = b.connect(server.boundAddress).sync().channel()
+      val ch = b.connect(server.boundAddress).sync.channel()
 
       val message = new HAProxyMessage(
         HAProxyProtocolVersion.V1, HAProxyCommand.PROXY, HAProxyProxiedProtocol.TCP4,
         "127.0.0.0", "127.0.0.1", 1024, serverPort
       )
       val req = new DefaultFullHttpRequest(
-        HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/", Unpooled.EMPTY_BUFFER
+        HttpVersion.HTTP_1_1, HttpMethod.GET, s"http://127.0.0.1:${serverPort}/", Unpooled.EMPTY_BUFFER
       )
 
       ch.writeAndFlush(message).sync()

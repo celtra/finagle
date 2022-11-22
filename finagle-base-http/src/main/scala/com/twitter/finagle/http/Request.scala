@@ -219,7 +219,7 @@ abstract class Request private extends Message {
   /**
    * The client source address of the request.
    *
-   * Typically HTTP server is place behind load balancer and therefore
+   * Typically HTTP server is placed behind load balancer and therefore
    * [[remoteAddress]] is pointing to it. In such cases client source address
    * is lost.
 
@@ -555,8 +555,7 @@ object Request {
   private[finagle] final class Impl(
     val chunkReader: Reader[Chunk],
     val chunkWriter: Writer[Chunk],
-    val remoteSocketAddress: InetSocketAddress
-  ) extends Request {
+    val remoteSocketAddress: InetSocketAddress) extends Request {
 
     def this(chunkReader: Reader[Chunk], remoteSocketAddress: InetSocketAddress) =
       this(chunkReader, FailingWriter, remoteSocketAddress)

@@ -15,7 +15,7 @@ class HAProxyProtocolHandlerTest extends AnyFunSuite {
     channel.flushInbound()
 
     // Message should not be propagated down the channel
-    assert(channel.inboundMessages().size() == 0)
+    assert(channel.inboundMessages.size() == 0)
 
     assert(channel.attr(HAProxyProtocolHandler.SourceAddressAttribute).get().getHostAddress == "1.1.1.1")
     assert(channel.attr(HAProxyProtocolHandler.SourcePortAttribute).get() == 1024)
@@ -28,8 +28,8 @@ class HAProxyProtocolHandlerTest extends AnyFunSuite {
     val msg = Unpooled.buffer().writeBytes("hello".getBytes(CharsetUtil.UTF_8))
 
     assert(channel.writeInbound(msg))
-    assert(channel.inboundMessages().size() == 1)
-    assert(!channel.inboundMessages().peek().isInstanceOf[HAProxyMessage])
+    assert(channel.inboundMessages.size() == 1)
+    assert(!channel.inboundMessages.peek().isInstanceOf[HAProxyMessage])
 
     // Channel attributes should not be set
     Seq(

@@ -500,12 +500,12 @@ object Http extends Client[Request, Response] with HttpRichClient with Server[Re
     /**
      * Enable/disable HA proxy protocol v1|v2
      *
-     * Typically HTTP server is place behind load balancer and therefore
-     * remote address of the request is pointing to it. In such cases original
+     * Typically HTTP server is placed behind load balancer and therefore
+     * remote address of the request is pointing to it. In such case original
      * client source address and destination port of the request is lost.
      *
      * Enable HA proxy protocol only if load balancer supports and pre-append requests
-     * with proxy protocol message v1|v2
+     * with proxy protocol message v1|v2.
      *
      * @note Handling HA proxy protocol is currently NOT supported for:
      *       - HTTP protocol version 2

@@ -23,14 +23,14 @@ private[finagle] class HAProxyProtocolHandler extends ChannelInboundHandlerAdapt
     msg match {
       case m: HAProxyMessage =>
         if (Option(m.sourceAddress()).isDefined && Option(m.destinationAddress()).isDefined) {
-          ctx.channel().attr(SourceAddressAttribute).set(InetAddress.getByName(m.sourceAddress()))
-          ctx.channel().attr(SourcePortAttribute).set(m.sourcePort())
-          ctx.channel().attr(DestinationAddressAttribute).set(InetAddress.getByName(m.destinationAddress()))
-          ctx.channel().attr(DestinationPortAttribute).set(m.destinationPort())
+          ctx.channel.attr(SourceAddressAttribute).set(InetAddress.getByName(m.sourceAddress()))
+          ctx.channel.attr(SourcePortAttribute).set(m.sourcePort())
+          ctx.channel.attr(DestinationAddressAttribute).set(InetAddress.getByName(m.destinationAddress()))
+          ctx.channel.attr(DestinationPortAttribute).set(m.destinationPort())
         }
 
         // Remove ourselves from the channel now, as no more work to do.
-        ctx.pipeline().remove(this)
+        ctx.pipeline.remove(this)
 
         // Release the reference counted object so that it can be returned to the pool.
         m.release()

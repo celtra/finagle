@@ -30,7 +30,7 @@ abstract class TransportContext {
   /**
    * Initial, typically client, source address of this transport.
    *
-   * Typically HTTP server is place behind load balancer and initial transport protocol
+   * Typically HTTP server is placed behind load balancer and initial transport protocol
    * information is therefore lost.
    *
    * @note Property is fulfilled only if HAProxyProtocol message is received through channel.

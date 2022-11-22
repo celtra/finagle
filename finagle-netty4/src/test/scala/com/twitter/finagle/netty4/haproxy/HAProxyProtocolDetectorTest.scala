@@ -14,7 +14,7 @@ class HAProxyProtocolDetectorTest extends AnyFunSuite {
     channel.writeInbound(msg)
     channel.flushInbound()
 
-    assert(channel.inboundMessages().size() == 1)
+    assert(channel.inboundMessages.size() == 1)
     assert(channel.readInbound[HAProxyMessage]() == msg)
   }
 
@@ -23,8 +23,8 @@ class HAProxyProtocolDetectorTest extends AnyFunSuite {
     val msg = Unpooled.buffer().writeBytes("hello".getBytes(CharsetUtil.UTF_8))
     channel.writeInbound(msg)
 
-    assert(channel.inboundMessages().size() == 1)
-    assert(!channel.inboundMessages().peek().isInstanceOf[HAProxyMessage])
+    assert(channel.inboundMessages.size() == 1)
+    assert(!channel.inboundMessages.peek().isInstanceOf[HAProxyMessage])
     assert(channel.readInbound[ByteBuf]() == msg)
   }
 }
