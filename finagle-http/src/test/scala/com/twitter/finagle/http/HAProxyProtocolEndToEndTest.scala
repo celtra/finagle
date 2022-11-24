@@ -105,6 +105,25 @@ class HAProxyProtocolEndToEndTest extends AnyFunSpec {
       ch.closeFuture().sync()
       group.shutdownGracefully()
     }
+
+    it("setup of HTTP server should failed if HTTP2 protocol is used") {
+      assertThrows[Exception] {
+        Http.server
+          .withHAProxyProtocol(true)
+          .withHttp2
+          .serve(new InetSocketAddress(0), Service.mk[Request, Response](_ => Future.value(Response())))
+      }
+    }
+
+    it("setup of HTTP server should failed if HTTP1.1 streaming enabled") {
+      assertThrows[Exception] {
+        Http.server
+          .withHAProxyProtocol(true)
+          .withNoHttp2
+          .withStreaming(true)
+          .serve(new InetSocketAddress(0), Service.mk[Request, Response](_ => Future.value(Response())))
+      }
+    }
   }
 
   private def serverService(validate: Request => Unit): Service[Request, Response] = {

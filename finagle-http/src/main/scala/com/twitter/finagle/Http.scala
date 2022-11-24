@@ -7,8 +7,7 @@ import com.twitter.finagle.http._
 import com.twitter.finagle.http.codec.HttpServerDispatcher
 import com.twitter.finagle.http.StreamTransport
 import com.twitter.finagle.http.filter._
-import com.twitter.finagle.http.param.ClientKerberosConfiguration
-import com.twitter.finagle.http.param.ServerKerberosConfiguration
+import com.twitter.finagle.http.param.{ClientKerberosConfiguration, HAProxyProtocol, ServerKerberosConfiguration}
 import com.twitter.finagle.http.service.HttpResponseClassifier
 import com.twitter.finagle.http2.Http2Listener
 import com.twitter.finagle.netty4.http.Netty4HttpListener
@@ -68,7 +67,8 @@ object Http extends Client[Request, Response] with HttpRichClient with Server[Re
   private[finagle] final class HttpImpl private (
     private[finagle] val clientEndpointer: Stackable[ServiceFactory[Request, Response]],
     private[finagle] val serverTransport: Transport[Any, Any] => StreamTransport[Response, Request],
-    private[finagle] val listener: Stack.Params => Listener[Any, Any, TransportContext])
+    private[finagle] val listener: Stack.Params => Listener[Any, Any, TransportContext],
+    private[finagle] val protocol: Protocol)
 
   private[finagle] object HttpImpl {
     implicit val httpImplParam: Stack.Param[HttpImpl] = Stack.Param(Http11Impl)
@@ -76,13 +76,15 @@ object Http extends Client[Request, Response] with HttpRichClient with Server[Re
     val Http11Impl: Http.HttpImpl = new Http.HttpImpl(
       ClientEndpointer.HttpEndpointer,
       new Netty4ServerStreamTransport(_),
-      Netty4HttpListener
+      Netty4HttpListener,
+      Protocol.HTTP_1_1
     )
 
     val Http2Impl: Http.HttpImpl = new Http.HttpImpl(
       ClientEndpointer.Http2Endpointer,
       new Netty4ServerStreamTransport(_),
-      Http2Listener.apply _
+      Http2Listener.apply _,
+      Protocol.HTTP_2
     )
   }
 
@@ -662,7 +664,23 @@ object Http extends Client[Request, Response] with HttpRichClient with Server[Re
             case Protocol.HTTP_1_1 => withNoHttp2
           }
 
+      validate()
+
       server.superServe(addr, factory)
+    }
+
+    /**
+     * HTTP server configuration validation
+     *
+     * @see [[com.twitter.finagle.Http.Server.withHAProxyProtocol]]
+     */
+    private def validate(): Unit = {
+      if (params.contains[HAProxyProtocol] && params[HAProxyProtocol].enabled) {
+        if (
+          (params.contains[HttpImpl] && params[HttpImpl].protocol == Protocol.HTTP_2) ||
+          (params.contains[http.param.Streaming] && params[http.param.Streaming].enabled)
+        ) throw new Exception("Validation of HTTP server with HA proxy protocol enabled failed.")
+      }
     }
   }
 
