@@ -17,6 +17,8 @@ private[finagle] class HAProxyProtocolDetector extends ChannelInboundHandlerAdap
       case buf: ByteBuf if HAProxyMessageDecoder.detectProtocol(buf).state() == ProtocolDetectionState.DETECTED =>
         ctx.pipeline
           .addAfter(HAProxyProtocolDetector.HandlerName, HAProxyProtocolHandler.HandlerName, new HAProxyProtocolHandler())
+          // At this point HAProxyProtocolDetector (this) has to be replaced with HA proxy message decoder otherwise
+          // the next handler in the pipeline (HAProxyProtocolHandler) won't receive decoded HA proxy message.
           .replace(this, "haproxyDecoder", new HAProxyMessageDecoder())
       case _ =>
         ctx.pipeline.remove(this)
