@@ -89,6 +89,30 @@ object Streaming {
     Enabled(fixedLengthStreamedAfter)
 }
 
+sealed abstract class HAProxyProtocol private {
+  def enabled: Boolean
+  final def disabled: Boolean = !enabled
+}
+
+object HAProxyProtocol {
+
+  implicit val haProxyProtocolParam: Stack.Param[HAProxyProtocol] =
+    Stack.Param(Disabled)
+
+  private[finagle] case object Enabled extends HAProxyProtocol {
+    def enabled: Boolean = true
+  }
+
+  private[finagle] case object Disabled extends HAProxyProtocol {
+    def enabled: Boolean = false
+  }
+
+  def apply(enabled: Boolean): HAProxyProtocol = {
+    if (enabled) Enabled
+    else Disabled
+  }
+}
+
 case class FixedLengthStreamedAfter(size: StorageUnit)
 object FixedLengthStreamedAfter {
   implicit val fixedLengthStreamedAfter: Stack.Param[FixedLengthStreamedAfter] =

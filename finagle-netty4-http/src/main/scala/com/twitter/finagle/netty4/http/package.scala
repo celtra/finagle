@@ -8,6 +8,7 @@ import com.twitter.finagle.netty4.http.handler.HeaderValidatorHandler
 import com.twitter.finagle.netty4.http.handler.UnpoolHttpHandler
 import com.twitter.finagle.netty4.http.handler.UriValidatorHandler
 import com.twitter.finagle.http.param._
+import com.twitter.finagle.netty4.haproxy.HAProxyProtocolDetector
 import com.twitter.finagle.netty4.http.handler.BadRequestHandler
 import com.twitter.finagle.param.Stats
 import com.twitter.finagle.server.Listener
@@ -142,6 +143,14 @@ package object http {
           params = params
         )
 
+  private[finagle] def initHAProxyProtocol(params: Stack.Params): ChannelPipeline => Unit = pipeline => {
+    params[HAProxyProtocol] match {
+      case HAProxyProtocol.Enabled =>
+        pipeline.addFirst(HAProxyProtocolDetector.HandlerName, new HAProxyProtocolDetector())
+      case _ =>
+    }
+  }
+
   private[finagle] def initServer(params: Stack.Params): ChannelPipeline => Unit = {
     val autoContinue = params[AutomaticContinue].enabled
     val maxRequestSize = params[MaxRequestSize].size
@@ -208,6 +217,7 @@ package object http {
   private[finagle] val ServerPipelineInit: Stack.Params => ChannelPipeline => Unit = {
     params: Stack.Params => pipeline: ChannelPipeline =>
       {
+        initHAProxyProtocol(params)(pipeline)
         pipeline.addLast(HttpCodecName, newHttpServerCodec(params))
         initServer(params)(pipeline)
       }

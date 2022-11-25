@@ -206,7 +206,9 @@ private[finagle] class Netty4ServerStreamTransport(rawTransport: Transport[Any, 
           transport.context.remoteAddress match {
             case ia: InetSocketAddress => ia
             case _ => new InetSocketAddress(0)
-          }
+          },
+          transport.context.clientSourceAddress,
+          transport.context.clientDestinationPort
         )
         Future.value(Multi(finagleReq, Future.Done))
 
