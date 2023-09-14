@@ -4,7 +4,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys += scalacOptions
 
 // All Twitter library releases are date versioned as YY.MM.patch
-val releaseVersion = "22.10.0-SNAPSHOT"
+val releaseVersion = "22.12.0"
 
 val libthriftVersion = "0.10.0"
 
@@ -70,7 +70,7 @@ val netty4Http = "io.netty" % "netty-codec-http" % netty4Version
 val netty4Http2 = "io.netty" % "netty-codec-http2" % netty4Version
 val netty4HAProxy = "io.netty" % "netty-codec-haproxy" % netty4Version
 val opencensusVersion = "0.24.0"
-val jacksonVersion = "2.13.4"
+val jacksonVersion = "2.14.1"
 val jacksonLibs = Seq(
   "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
   "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
@@ -837,7 +837,7 @@ lazy val finagleBenchmarkThrift = Project(
   id = "finagle-benchmark-thrift",
   base = file("finagle-benchmark-thrift")
 ).settings(
-    sharedSettings
+    sharedSettings ++ Seq(Compile / scroogeLanguages := Seq("java", "scala"))
   ).settings(
     libraryDependencies ++= scroogeLibs
   ).dependsOn(finagleThrift)

@@ -7,6 +7,9 @@ Note that ``PHAB_ID=#`` and ``RB_ID=#`` correspond to associated messages in com
 Unreleased
 ----------
 
+22.12.0
+-------
+
 New Features
 ~~~~~~~~~~~~
 
@@ -23,6 +26,8 @@ New Features
 
 Runtime Behavior Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+* util: Bump version of Jackson to 2.14.1. ``PHAB_ID=D1025778``
 
 * finagle-http: Remove DeadlineFilter from Server stack. ``PHAB_ID=D964479``
 
