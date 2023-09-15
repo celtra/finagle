@@ -115,6 +115,12 @@ jobs:
       - name: test
         run: ${{ format('./sbt ++{0} clean "{1}/test"', matrix.scala, matrix.project) }}
   release:
+    strategy:
+      fail-fast: true
+      matrix:
+        scala: [ 2.12.12 ]
+        java: [ '1.11' ]
+        project: ['finagle-core', 'finagle-netty4', 'finagle-netty4-http', 'finagle-base-http', 'finagle-http']
     runs-on: ubuntu-latest
     permissions: write-all
     if: startsWith(github.ref, 'refs/tags/')
@@ -124,7 +130,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v1
         with:
-          java-version: '1.8'
+          java-version: ${{ matrix.java }}
       - name: build dependencies
         uses: twitter/dodo-build@v3
         with:
@@ -133,8 +139,13 @@ jobs:
           no-test: true
           publish-m2: true
           verbose: true
-      - name: Create finagle-http package
-        run: ./sbt ++2.12.12 clean "finagle-http/package"
+      - name: Build finagle packages
+        run: |
+          # Create project JAR
+          ${{ format('./sbt ++{0} clean "{1}/package"', matrix.scala, matrix.project) }}
+
+          # Create Maven POM file
+          ${{ format('./sbt ++{0} "{1}/makePom"', matrix.scala, matrix.project) }}
       - name: Create release on GitHub
         uses: softprops/action-gh-release@v1
       - name: Configure AWS credentials
@@ -145,11 +156,34 @@ jobs:
           aws-region: us-east-1
       - name: Upload to S3
         run: |
-          FILE=$(find finagle-http/target/scala-2.12 -name 'finagle-http_2.12-*.jar')
-          NAME=$(echo "$FILE" | rev | cut -d/ -f1 | rev)
+          PROJECT=${{ matrix.project }}
+          SCALA_MAJOR_VERSION=$(echo ${{ matrix.scala }} | cut -d '.' -f 1,2)
 
-          aws s3 cp "${FILE}" "s3://${{ secrets.S3_BUCKET }}/github/finagle/${NAME}" > /dev/null
-          aws s3api put-object-acl --bucket ${{ secrets.S3_BUCKET }} --acl public-read --key "github/finagle/${NAME}" > /dev/null
+          for TYPE in "JAR" "POM"
+          do
+            if [[ $TYPE == "JAR" ]]
+            then
+              FILE=$(find ${PROJECT}/target/scala-${SCALA_MAJOR_VERSION} -name ${PROJECT}_${SCALA_MAJOR_VERSION}-'*.jar')
+            elif [[ $TYPE == "POM" ]]
+            then
+              FILE=$(find ${PROJECT}/target/scala-${SCALA_MAJOR_VERSION} -name ${PROJECT}_${SCALA_MAJOR_VERSION}-'*.pom')
+            else
+              echo "Unknown file type: ${TYPE}."
+              exit 1
+            fi
 
-          CHECKSUM=$(sha256sum "${FILE}" | awk '{print $1}')
-          echo "${NAME}: https://{{ secrets.CDN_HOSTNAME }}/github/finagle/${NAME} ${CHECKSUM}"
+            # Create sha1 of the file
+            CHECKSUM=$(sha1sum $FILE | awk '{ print $1 }' > ${FILE}.sha1)
+
+            # Upload files to the Maven repository linked on S3
+            for F in $FILE ${FILE}.sha1
+            do
+              NAME=$(echo $F | rev | cut -d/ -f1 | rev)
+
+              # TODO: change s3
+              aws s3 cp "${F}" "s3://${{ secrets.S3_BUCKET }}/github/finagle/${NAME}" > /dev/null
+              aws s3api put-object-acl --bucket ${{ secrets.S3_BUCKET }} --acl public-read --key "github/finagle/${NAME}" > /dev/null
+
+              echo "${NAME}: https://{{ secrets.CDN_HOSTNAME }}/github/finagle/${NAME} ${CHECKSUM}"
+            done
+          done
