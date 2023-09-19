@@ -141,7 +141,7 @@ jobs:
           verbose: true
       - name: Build finagle packages
         run: |
-          # Create project JAR
+          # Create JAR file
           ${{ format('./sbt ++{0} clean "{1}/package"', matrix.scala, matrix.project) }}
 
           # Create Maven POM file
@@ -158,20 +158,11 @@ jobs:
         run: |
           PROJECT=${{ matrix.project }}
           SCALA_MAJOR_VERSION=$(echo ${{ matrix.scala }} | cut -d '.' -f 1,2)
+          FILE_REGEX="(finagle-[a-z0-9-]+_[0-9.]+)-([0-9]+.[0-9]+.[0-9]+)\.(jar|pom)(\.sha1)?"
 
-          for TYPE in "JAR" "POM"
+          FILES=$(find ${PROJECT}/target/scala-${SCALA_MAJOR_VERSION} -name '*.jar' -o -name '*.pom')
+          for FILE in $FILES
           do
-            if [[ $TYPE == "JAR" ]]
-            then
-              FILE=$(find ${PROJECT}/target/scala-${SCALA_MAJOR_VERSION} -name ${PROJECT}_${SCALA_MAJOR_VERSION}-'*.jar')
-            elif [[ $TYPE == "POM" ]]
-            then
-              FILE=$(find ${PROJECT}/target/scala-${SCALA_MAJOR_VERSION} -name ${PROJECT}_${SCALA_MAJOR_VERSION}-'*.pom')
-            else
-              echo "Unknown file type: ${TYPE}."
-              exit 1
-            fi
-
             # Create sha1 of the file
             CHECKSUM=$(sha1sum $FILE | awk '{ print $1 }' > ${FILE}.sha1)
 
@@ -180,10 +171,18 @@ jobs:
             do
               NAME=$(echo $F | rev | cut -d/ -f1 | rev)
 
-              # TODO: change s3
-              aws s3 cp "${F}" "s3://${{ secrets.S3_BUCKET }}/github/finagle/${NAME}" > /dev/null
-              aws s3api put-object-acl --bucket ${{ secrets.S3_BUCKET }} --acl public-read --key "github/finagle/${NAME}" > /dev/null
+              if [[ $NAME =~ $FILE_REGEX ]]
+              then
+                BASE_NAME="${BASH_REMATCH[1]}"
+                RELEASE_VERSION="${BASH_REMATCH[2]}"
+              else
+                echo "${F} doesn't match"
+                exit 1
+              fi
 
-              echo "${NAME}: https://{{ secrets.CDN_HOSTNAME }}/github/finagle/${NAME} ${CHECKSUM}"
+              aws s3 cp "${F}" "s3://${{ secrets.S3_BUCKET }}/maven/com/twitter/${BASE_NAME}/${RELEASE_VERSION}/${NAME}" > /dev/null
+              aws s3api put-object-acl --bucket ${{ secrets.S3_BUCKET }} --acl public-read --key "maven/com/twitter/${BASE_NAME}/${RELEASE_VERSION}/${NAME}" > /dev/null
+
+              echo "${NAME}: https://{{ secrets.CDN_HOSTNAME }}/maven/com/twitter/${BASE_NAME}/${RELEASE_VERSION}/${NAME} ${CHECKSUM}"
             done
           done
