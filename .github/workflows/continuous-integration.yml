@@ -146,8 +146,8 @@ jobs:
 
           # Create Maven POM file
           ${{ format('./sbt ++{0} "{1}/makePom"', matrix.scala, matrix.project) }}
-      - name: Create release on GitHub
-        uses: softprops/action-gh-release@v1
+      #- name: Create release on GitHub
+      #  uses: softprops/action-gh-release@v1
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
