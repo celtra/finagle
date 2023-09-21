@@ -10,7 +10,7 @@ val releaseVersion = "22.12.0"
 // Those packages that were modified by us should have different release version
 // but their dependencies should be loaded from central repositories with [[releaseVersion]]
 // as specified in this file.
-val celtraReleaseVersion = "22.12.1"
+val celtraReleaseVersion = "22.12.0"
 
 val libthriftVersion = "0.10.0"
 
