@@ -6,6 +6,12 @@ Global / excludeLintKeys += scalacOptions
 // All Twitter library releases are date versioned as YY.MM.patch
 val releaseVersion = "22.12.0"
 
+// Celtra forked Twitter Finagle and add additional functionality (HaProxy support).
+// Those packages that were modified by us should have different release version
+// but their dependencies should be loaded from central repositories with [[releaseVersion]]
+// as specified in this file.
+val celtraReleaseVersion = "22.12.0"
+
 val libthriftVersion = "0.10.0"
 
 val defaultNetty4Version = "4.1.78.Final"
@@ -392,6 +398,7 @@ lazy val finagleCore = Project(
     sharedSettings
   ).settings(
     name := "finagle-core",
+    version := celtraReleaseVersion,
     libraryDependencies ++= Seq(
       util("app"),
       util("cache"),
@@ -424,6 +431,7 @@ lazy val finagleNetty4 = Project(
     sharedSettings
   ).settings(
     name := "finagle-netty4",
+    version := celtraReleaseVersion,
     libraryDependencies ++= Seq(
       util("app"),
       util("cache"),
@@ -578,6 +586,7 @@ lazy val finagleHttp = Project(
 ).settings(
     sharedSettings
   ).settings(
+    version := celtraReleaseVersion,
     name := "finagle-http",
     libraryDependencies ++= Seq(
       util("codec"),
@@ -593,6 +602,7 @@ lazy val finagleBaseHttp = Project(
     sharedSettings
   ).settings(
     name := "finagle-base-http",
+    version := celtraReleaseVersion,
     libraryDependencies ++= Seq(
       util("logging"),
       netty4Http
@@ -620,6 +630,7 @@ lazy val finagleNetty4Http = Project(
     sharedSettings
   ).settings(
     name := "finagle-netty4-http",
+    version := celtraReleaseVersion,
     libraryDependencies ++= Seq(
       util("app"),
       util("codec"),
