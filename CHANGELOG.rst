@@ -7,6 +7,14 @@ Note that ``PHAB_ID=#`` and ``RB_ID=#`` correspond to associated messages in com
 Unreleased
 ----------
 
+22.12.1
+-------
+
+New Features (Celtra)
+~~~~~~~~~~~~~~~~~~~~~
+* finagle-http: Support for HA proxy protocol for HTTP1.1
+* GHA: Release job with building relevant packages and publishing them to Maven repository (Nexus)
+
 22.12.0
 -------
 
