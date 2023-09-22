@@ -81,8 +81,8 @@ Licensed under the Apache License, Version 2.0: https://www.apache.org/licenses/
 
 ### Create working directory
 ```
-mkdir -p <HOME>/runner/work/finagle/finagle
-cd <HOME>/runner/work/finagle/finagle
+mkdir -p <HOME>/finagle-celtra
+cd <HOME>/finagle-celtra
 ```
 ### Clone repository
 ```
@@ -90,15 +90,12 @@ git clone <this> .
 ```
 ### Build dependencies
 ```
-mkdir -p <HOME>/runner/bin
-curl -sL -o <HOME>/runner/bin/dodo https://raw.githubusercontent.com/twitter/dodo/develop/bin/build
-chmod 755 <HOME>/runner/bin/dodo
-cd <HOME>/runner/work/finagle/finagle
-IVY_HOME=<HOME>/runner <HOME>/runner/bin/dodo --branch develop --no-test --publish-m2 --verbose finagle
+curl -sL -o /tmp/dodo https://raw.githubusercontent.com/twitter/dodo/develop/bin/build
+chmod 755 /tmp/dodo
+/tmp/dodo --branch develop --no-test --publish-m2 --verbose finagle
 ```
 ### Build Finagle
 ```
-cd <HOME>/runner/work/finagle/finagle
 ./sbt update
 ./sbt compile
 ```
@@ -107,5 +104,12 @@ cd <HOME>/runner/work/finagle/finagle
  
 Run the following to run tests for the most relevant Finagle HTTP packages.
 ```
-./sbt "finagle-base-http/test" "finagle-http/test" "finagle-http2/test" "finagle-netty4/test" "finagle-netty4-http/test" "finagle-core/test"
+./sbt "finagle-base-http/test" "finagle-http/test" "finagle-netty4/test" "finagle-netty4-http/test" "finagle-core/test"
+```
+
+## Local JAR package
+
+Run the following command to create JAR package of the project.
+```
+./sbt "finagle-base-http/package" "finagle-http/package" "finagle-netty4/package" "finagle-netty4-http/package" "finagle-core/package"
 ```
