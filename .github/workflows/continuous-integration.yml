@@ -158,7 +158,7 @@ jobs:
         run: |
           PROJECT=${{ matrix.project }}
           SCALA_MAJOR_VERSION=$(echo ${{ matrix.scala }} | cut -d '.' -f 1,2)
-          FILE_REGEX="(finagle-[a-z0-9-]+_[0-9.]+)-([0-9]+.[0-9]+.[0-9]+-[a-zA-Z]+)\.(jar|pom)(\.sha1)?"
+          FILE_REGEX="(finagle-[a-z0-9-]+_[0-9.]+)-([0-9]+.[0-9]+.[0-9]+-\d+)\.(jar|pom)(\.sha1)?"
 
           FILES=$(find ${PROJECT}/target/scala-${SCALA_MAJOR_VERSION} -name '*.jar' -o -name '*.pom')
           for FILE in $FILES
