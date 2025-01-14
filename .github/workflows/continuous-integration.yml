@@ -118,7 +118,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        scala: [ 2.12.12 ]
+        scala: [ 2.12.12, 2.13.6 ]
         java: [ '1.11' ]
         project: ['finagle-core', 'finagle-netty4', 'finagle-netty4-http', 'finagle-base-http', 'finagle-http']
     runs-on: ubuntu-latest
